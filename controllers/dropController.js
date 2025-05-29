@@ -1,4 +1,4 @@
-const Order = require("../models/Order");
+const Order = require("../models/Drop");
 const Product = require("../models/Product");
 
 // Создание нового прихода
@@ -6,10 +6,21 @@ exports.createOrder = async (req, res) => {
     try {
         const { supplier, items } = req.body;
 
+        // Проверяем все productId
+        for (const item of items) {
+            const productExists = await Product.findById(item.productId);
+            if (!productExists) {
+                return res.status(400).json({
+                    message: `Продукт с ID ${item.productId} не найден`
+                });
+            }
+        }
+
+        // Создаём заказ
         const order = new Order({
             supplier,
             items,
-            acceptedBy: req.user.id // 👈 сохраняем смену
+            acceptedBy: req.user.id
         });
 
         await order.save();
