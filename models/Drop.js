@@ -12,4 +12,4 @@ const orderSchema = new mongoose.Schema({
     acceptedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true } // 🔥 кто принял поставку
 });
 
-module.exports = mongoose.model("Order", orderSchema);
+module.exports = mongoose.model("Drop", orderSchema);
