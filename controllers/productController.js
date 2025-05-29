@@ -3,11 +3,11 @@ const Product = require("../models/Product");
 // Создать товар
 exports.createProduct = async (req, res) => {
     try {
-        const { name, sku, price, quantity, imageUrl } = req.body;
+        const { name, sku, price, quantity, imageUrl, category } = req.body;
         const existing = await Product.findOne({ sku });
         if (existing) return res.status(400).json({ message: "SKU already exists" });
 
-        const product = new Product({ name, sku, price, quantity, imageUrl });
+        const product = new Product({ name, sku, price, quantity, category, imageUrl });
         await product.save();
         res.status(201).json(product);
     } catch (err) {
@@ -18,9 +18,23 @@ exports.createProduct = async (req, res) => {
 // Получить все товары
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find().sort({ createdAt: -1 });
+        const products = await Product.find()
+            .populate("category", "name") // ✅ подтянем имя категории
+            .sort({ createdAt: -1 });
+
         res.json(products);
     } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.getProductsByCatId = async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        const products = await Product.find({ category: categoryId }).populate("category");
+        res.json(products);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Server error" });
     }
 };
