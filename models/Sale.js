@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const saleSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now },
     soldBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    paymentMethod: { type: String, enum: ["cash", "card"], required: true },
+    paymentMethod: { type: String, enum: ["cash", "card", "online-order"], required: true },
     items: [
         {
             productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },

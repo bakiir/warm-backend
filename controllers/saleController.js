@@ -5,7 +5,7 @@ const User = require("../models/User");
 exports.createSale = async (req, res) => {
     try {
         const { items, paymentMethod } = req.body;
-        if (!["cash", "card"].includes(paymentMethod)) {
+        if (!["cash", "card", "online-order"].includes(paymentMethod)) {
             return res.status(400).json({ message: "Неверный способ оплаты" });
         }
 
