@@ -72,11 +72,38 @@ exports.createSale = async (req, res) => {
 
 exports.getSales = async (req, res) => {
     try {
-        const sales = await Sale.find().populate("soldBy", "name").populate("items.productId", "name");
-        res.status(200).json(sales);
+        const sales = await Sale.find()
+            .populate({
+                path: "soldBy",
+                select: "username -_id" // только username без _id
+            })
+            .populate({
+                path: "items.productId",
+                select: "name" // получим _id и name
+            })
+            .lean(); // вернёт обычные JS-объекты, не mongoose-документы
+
+        const formatted = sales.map(sale => ({
+            _id: sale._id,
+            soldBy: sale.soldBy.username,
+            paymentMethod: sale.paymentMethod,
+            items: sale.items.map(item => ({
+                productId: {
+                    _id: item.productId._id,
+                    name: item.productId.name
+                },
+                quantity: item.quantity,
+                price: item.price
+            })),
+            total: sale.total,
+            date: sale.date,
+            __v: sale.__v
+        }));
+
+        res.json(formatted);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Ошибка при получении истории продаж" });
+        console.error("Error getting sales:", err);
+        res.status(500).json({ error: "Failed to fetch sales" });
     }
 };
 
