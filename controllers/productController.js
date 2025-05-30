@@ -1,15 +1,29 @@
 const Product = require("../models/Product");
+const Category = require("../models/Category");
 
 // Создать товар
 exports.createProduct = async (req, res) => {
     try {
         const { name, sku, price, quantity, imageUrl, category } = req.body;
+
+        // Check for existing product by SKU
         const existing = await Product.findOne({ sku });
         if (existing) return res.status(400).json({ message: "SKU already exists" });
 
+        // Check if category exists
+        const categoryDoc = await Category.findById(category);
+        if (!categoryDoc) return res.status(400).json({ message: "Category not found" });
+
+        // Create product
         const product = new Product({ name, sku, price, quantity, category, imageUrl });
         await product.save();
-        res.status(201).json(product);
+
+        // Attach category name manually (if needed)
+        const productObj = product.toObject();
+        productObj.categoryName = categoryDoc.name;
+
+        res.status(201).json(productObj);
+
     } catch (err) {
         res.status(500).json({ message: "Server error" });
     }
