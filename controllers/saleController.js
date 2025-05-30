@@ -1,5 +1,6 @@
-const Sale = require("../models/Sale");
 const Product = require("../models/Product");
+const Sale = require("../models/Sale");
+const User = require("../models/User");
 
 exports.createSale = async (req, res) => {
     try {
@@ -19,12 +20,10 @@ exports.createSale = async (req, res) => {
                 return res.status(400).json({ message: `Недостаточно на складе: ${product.name}` });
             }
 
-            // Уменьшаем количество товара
             await Product.findByIdAndUpdate(item.productId, {
                 $inc: { quantity: -item.quantity }
             });
 
-            // Сохраняем цену из базы
             saleItems.push({
                 productId: product._id,
                 quantity: item.quantity,
@@ -43,7 +42,28 @@ exports.createSale = async (req, res) => {
 
         await sale.save();
 
-        res.status(201).json(sale);
+        // Получаем username
+        const user = await User.findById(req.user.id).select("username");
+
+        // Заменяем productId на sku
+        const enrichedItems = await Promise.all(sale.items.map(async (item) => {
+            const product = await Product.findById(item.productId).select("sku");
+            return {
+                sku: product.sku,
+                quantity: item.quantity,
+                price: item.price
+            };
+        }));
+
+        // Отправляем клиенту ответ с username и sku
+        res.status(201).json({
+            soldBy: user.username,
+            paymentMethod: sale.paymentMethod,
+            items: enrichedItems,
+            total: sale.total,
+            date: sale.date
+        });
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Ошибка при продаже" });
