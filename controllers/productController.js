@@ -4,28 +4,25 @@ const Category = require("../models/Category");
 // Создать товар
 exports.createProduct = async (req, res) => {
     try {
-        const { name, sku, price, quantity, imageUrl, category } = req.body;
+        const { name, price, sku, quantity, category } = req.body;
 
-        // Check for existing product by SKU
-        const existing = await Product.findOne({ sku });
-        if (existing) return res.status(400).json({ message: "SKU already exists" });
+        const imageUrl = req.file ? req.file.path : null; // Cloudinary path (публичный)
 
-        // Check if category exists
-        const categoryDoc = await Category.findById(category);
-        if (!categoryDoc) return res.status(400).json({ message: "Category not found" });
+        const product = new Product({
+            name,
+            sku,
+            price,
+            quantity,
+            imageUrl,
+            category
+        });
 
-        // Create product
-        const product = new Product({ name, sku, price, quantity, category, imageUrl });
         await product.save();
 
-        // Attach category name manually (if needed)
-        const productObj = product.toObject();
-        productObj.categoryName = categoryDoc.name;
-
-        res.status(201).json(productObj);
-
+        res.status(201).json(product);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        console.error(err);
+        res.status(500).json({ message: "Ошибка при создании продукта" });
     }
 };
 
@@ -59,11 +56,20 @@ exports.updateProduct = async (req, res) => {
         const { id } = req.params;
         const updates = req.body;
 
+        // Если есть новый файл — загрузить его в Cloudinary
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "products",
+            });
+            updates.imageUrl = result.secure_url;
+        }
+
         const product = await Product.findByIdAndUpdate(id, updates, { new: true });
         if (!product) return res.status(404).json({ message: "Product not found" });
 
         res.json(product);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Server error" });
     }
 };
