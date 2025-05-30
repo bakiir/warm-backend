@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
-const Category = require("../models/Category");
+const { cloudinary } = require("../config/cloudinary");
+
 
 // Создать товар
 exports.createProduct = async (req, res) => {
