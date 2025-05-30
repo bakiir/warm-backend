@@ -10,5 +10,6 @@ router.use(checkRole("picker")); // доступен только сборщик
 router.get("/orders/pending", picker.getPendingOrders);
 router.post("/orders/:id/accept", picker.acceptOrder);
 router.post("/orders/:id/complete", picker.completeOrder);
+router.get("/orders/", picker.getAllOrders)
 
 module.exports = router;

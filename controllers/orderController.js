@@ -11,6 +11,21 @@ exports.getPendingOrders = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+exports.getAllOrders = async (req, res) => {
+
+    const { status } = req.query;
+
+    const filter = status ? { status } : {};
+
+    try {
+        const orders = await Order.find(filter);
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 // POST /picker/orders/:id/accept
 exports.acceptOrder = async (req, res) => {
     try {
