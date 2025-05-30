@@ -21,7 +21,6 @@ app.use("/api/orders", require("./routes/dropRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/pickers", require("./routes/orderRoutes"));
 app.use("/api/customers", require("./routes/customerRoutes"));
-// app.use("/api/users", require("./routes/userRoutes"));
-
+app.use("/api/users", require("./routes/userRoutes"))
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
