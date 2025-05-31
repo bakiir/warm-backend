@@ -73,37 +73,30 @@ exports.createSale = async (req, res) => {
 exports.getSales = async (req, res) => {
     try {
         const sales = await Sale.find()
-            .populate({
-                path: "soldBy",
-                select: "username -_id" // только username без _id
-            })
-            .populate({
-                path: "items.productId",
-                select: "name" // получим _id и name
-            })
-            .lean(); // вернёт обычные JS-объекты, не mongoose-документы
+            .populate("soldBy", "username")
+            .populate("items.productId", "name")
+            .lean();
 
         const formatted = sales.map(sale => ({
             _id: sale._id,
-            soldBy: sale.soldBy.username,
+            soldBy: sale.soldBy?.username || "Неизвестно",
             paymentMethod: sale.paymentMethod,
             items: sale.items.map(item => ({
-                productId: {
+                productId: item.productId ? {
                     _id: item.productId._id,
                     name: item.productId.name
-                },
+                } : null,
                 quantity: item.quantity,
                 price: item.price
             })),
             total: sale.total,
-            date: sale.date,
-            __v: sale.__v
+            date: sale.date
         }));
 
         res.json(formatted);
     } catch (err) {
-        console.error("Error getting sales:", err);
-        res.status(500).json({ error: "Failed to fetch sales" });
+        console.error("Ошибка при получении продаж:", err);
+        res.status(500).json({ error: "Ошибка сервера" });
     }
 };
 
